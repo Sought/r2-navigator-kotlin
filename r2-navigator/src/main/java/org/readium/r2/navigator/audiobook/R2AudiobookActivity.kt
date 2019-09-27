@@ -115,7 +115,6 @@ open class R2AudiobookActivity : AppCompatActivity(), CoroutineScope, R2Activity
                     isSeekTracking = false
                     Timber.tag("AUDIO").d("stop tracking")
                 }
-
             })
 
             play_pause!!.setOnClickListener { view ->
@@ -167,7 +166,6 @@ open class R2AudiobookActivity : AppCompatActivity(), CoroutineScope, R2Activity
                 mediaPlayer?.previous()
                 play_pause!!.callOnClick()
             }
-
         }, 100)
     }
 
@@ -187,7 +185,6 @@ open class R2AudiobookActivity : AppCompatActivity(), CoroutineScope, R2Activity
         if (currentResource == publication.readingOrder.size - 1) {
             next_chapter!!.isEnabled = false
             next_chapter!!.alpha = .5f
-
         } else {
             next_chapter!!.isEnabled = true
             next_chapter!!.alpha = 1.0f
@@ -195,7 +192,6 @@ open class R2AudiobookActivity : AppCompatActivity(), CoroutineScope, R2Activity
         if (currentResource == 0) {
             prev_chapter!!.isEnabled = false
             prev_chapter!!.alpha = .5f
-
         } else {
             prev_chapter!!.isEnabled = true
             prev_chapter!!.alpha = 1.0f
@@ -204,11 +200,12 @@ open class R2AudiobookActivity : AppCompatActivity(), CoroutineScope, R2Activity
         val current = publication.readingOrder[currentResource]
         chapterView!!.text = current.title
 
-
         if (mediaPlayer!!.isPlaying) {
             play_pause!!.setImageDrawable(ContextCompat.getDrawable(this@R2AudiobookActivity, R.drawable.ic_pause_white_24dp))
+            play_pause!!.tag = "PauseButton"
         } else {
             play_pause!!.setImageDrawable(ContextCompat.getDrawable(this@R2AudiobookActivity, R.drawable.ic_play_arrow_white_24dp))
+            play_pause!!.tag = "PlayButton"
         }
 
         finalTime = mediaPlayer!!.duration
@@ -227,7 +224,6 @@ open class R2AudiobookActivity : AppCompatActivity(), CoroutineScope, R2Activity
         seekBar!!.progress = startTime.toInt()
 
         storeProgression(Locations(progression = seekBar!!.progress.toDouble()))
-
     }
 
     var seekLocation: Locations? = null
@@ -345,10 +341,7 @@ open class R2AudiobookActivity : AppCompatActivity(), CoroutineScope, R2Activity
                 play_pause!!.callOnClick()
 
                 chapterView!!.text = publication.readingOrder[currentResource].title
-
             }
         }
-
     }
-
 }
