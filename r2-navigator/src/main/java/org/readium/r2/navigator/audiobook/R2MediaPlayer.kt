@@ -6,11 +6,14 @@ import android.media.MediaDataSource
 import android.media.MediaPlayer
 import android.media.MediaPlayer.OnPreparedListener
 import android.net.Uri
+import android.os.Build
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import org.readium.r2.shared.Link
+import java.io.File
 import java.io.IOException
+import java.util.zip.ZipFile
 
 class R2MediaPlayer(private var items: MutableList<Link>, private val publicationPath: String, private var callback: MediaPlayerCallback) : OnPreparedListener {
 
@@ -41,11 +44,11 @@ class R2MediaPlayer(private var items: MutableList<Link>, private val publicatio
             System.arraycopy(data, position.toInt(), buffer, offset, rsize)
             return rsize
         }
-
         override fun close() {
             // Nothing to do here. However, close() has to be overriden.
         }
     }
+
     private val uiScope = CoroutineScope(Dispatchers.Main)
 
     var progress: ProgressDialog? = null
@@ -56,10 +59,10 @@ class R2MediaPlayer(private var items: MutableList<Link>, private val publicatio
         get() = mediaPlayer.isPlaying
 
     val duration: Double
-        get() = mediaPlayer.duration.toDouble() //if (isPrepared) {mediaPlayer.duration.toDouble()}else {0.0}
+        get() = mediaPlayer.duration.toDouble() // if (isPrepared) {mediaPlayer.duration.toDouble()}else {0.0}
 
     val currentPosition: Double
-        get() = mediaPlayer.currentPosition.toDouble() //if (isPrepared) {mediaPlayer.currentPosition.toDouble()}else {0.0}
+        get() = mediaPlayer.currentPosition.toDouble() // if (isPrepared) {mediaPlayer.currentPosition.toDouble()}else {0.0}
 
     var isPaused: Boolean
     var isPrepared: Boolean
@@ -77,7 +80,6 @@ class R2MediaPlayer(private var items: MutableList<Link>, private val publicatio
         toggleProgress(true)
     }
 
-
     /**
      * Called when the media file is ready for playback.
      *
@@ -93,10 +95,22 @@ class R2MediaPlayer(private var items: MutableList<Link>, private val publicatio
     fun startPlayer() {
         mediaPlayer.reset()
         try {
-            mediaPlayer.setDataSource(Uri.parse(items[index].href).toString())
+            if (Build.VERSION.SDK_INT >= 23) {
+                //ANDROID 6 and later
+                val fileZip = publicationPath
+                val toFind = Uri.parse(items[index].href).toString()
+                val zip = ZipFile(File(fileZip))
+                val data = zip.getInputStream(zip.getEntry(toFind)).readBytes()
+                mediaPlayer.setDataSource(MyMediaDataSource(data))
+            } else {
+                //ANDROID 5 and 5.1
+                mediaPlayer.setDataSource(Uri.parse(items[index].href).toString())
+            }
+
             mediaPlayer.setOnPreparedListener(this)
             mediaPlayer.prepareAsync()
             toggleProgress(true)
+
         } catch (e: IllegalArgumentException) {
             e.printStackTrace()
         } catch (e: IllegalStateException) {
@@ -180,12 +194,9 @@ class R2MediaPlayer(private var items: MutableList<Link>, private val publicatio
         }
         toggleProgress(true)
     }
-
 }
 
 interface MediaPlayerCallback {
     fun onPrepared()
     fun onComplete(index: Int, currentPosition: Int, duration: Int)
 }
-
-
