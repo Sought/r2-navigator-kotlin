@@ -1,6 +1,8 @@
 package org.readium.r2.navigator.audiobook
 
+import android.annotation.TargetApi
 import android.app.ProgressDialog
+import android.media.MediaDataSource
 import android.media.MediaPlayer
 import android.media.MediaPlayer.OnPreparedListener
 import android.net.Uri
@@ -12,8 +14,38 @@ import java.io.IOException
 
 class R2MediaPlayer(private var items: MutableList<Link>, private val publicationPath: String, private var callback: MediaPlayerCallback) : OnPreparedListener {
 
-class R2MediaPlayer(private var items: MutableList<Link>, private var callback: MediaPlayerCallback) : OnPreparedListener {
+    /**
+     * Inner class only ever used by the mediaplayer. Will only be called on android 6.0 and more.
+     * Any device with a version inferior to it should not ever try to call this class.
+     * MyMediaDataSource serves to provide a memory block fragment to the Android MediaPlayer api.
+     *
+     * data: ByteArray - the data that should be streamed to the media player.
+     */
+    @TargetApi(23)
+    private inner class MyMediaDataSource(private val data: ByteArray) : MediaDataSource() {
 
+        override fun getSize(): Long {
+            return data.size.toLong()
+        }
+
+        override fun readAt(position: Long, buffer: ByteArray?, offset: Int, size: Int): Int {
+            val length = data.size
+            if (position >= length)
+                return -1
+
+            var rsize = size
+
+            if (position + size >= length) {
+                rsize = length - position.toInt() - 1
+            }
+            System.arraycopy(data, position.toInt(), buffer, offset, rsize)
+            return rsize
+        }
+
+        override fun close() {
+            // Nothing to do here. However, close() has to be overriden.
+        }
+    }
     private val uiScope = CoroutineScope(Dispatchers.Main)
 
     var progress: ProgressDialog? = null
