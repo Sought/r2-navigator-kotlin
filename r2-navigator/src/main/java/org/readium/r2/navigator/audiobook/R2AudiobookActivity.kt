@@ -63,7 +63,7 @@ open class R2AudiobookActivity : AppCompatActivity(), CoroutineScope, R2Activity
 
         title = null
 
-        mediaPlayer = R2MediaPlayer(publication.readingOrder, this)
+        mediaPlayer = R2MediaPlayer(publication.readingOrder, publicationPath, this)
 
         chapterView!!.text = publication.readingOrder[currentResource].title
 

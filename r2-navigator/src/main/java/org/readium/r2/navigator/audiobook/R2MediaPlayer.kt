@@ -10,6 +10,7 @@ import kotlinx.coroutines.launch
 import org.readium.r2.shared.Link
 import java.io.IOException
 
+class R2MediaPlayer(private var items: MutableList<Link>, private val publicationPath: String, private var callback: MediaPlayerCallback) : OnPreparedListener {
 
 class R2MediaPlayer(private var items: MutableList<Link>, private var callback: MediaPlayerCallback) : OnPreparedListener {
 
